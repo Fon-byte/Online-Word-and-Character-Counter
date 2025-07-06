@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Word and Character Counter</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for theming */
+        :root {
+            --bg-color: #f8fafc; /* Light background */
+            --container-bg: #ffffff; /* Light container background */
+            --text-color: #1f2937; /* Dark text */
+            --secondary-text-color: #374151; /* Slightly lighter dark text */
+            --border-color: #cbd5e0; /* Light border */
+            --count-bg: #e2e8f0; /* Light count background */
+            --read-time-color: #10b981; /* Green for read time */
+            --ad-bg: #fffbeb; /* Light ad background */
+            --ad-border: #fcd34d; /* Yellow ad border */
+            --ad-text: #92400e; /* Dark yellow ad text */
+            --footer-text: #6b7280; /* Gray footer text */
+            --input-placeholder: #6b7280; /* Dark placeholder */
+        }
+
+        /* Dark Mode variables */
+        html.dark-mode {
+            --bg-color: #1a202c; /* Dark blue-grey background */
+            --container-bg: #2d3748; /* Darker container background */
+            --text-color: #f7fafc; /* Light text */
+            --secondary-text-color: #e2e8f0; /* Slightly darker light text */
+            --border-color: #4a5568; /* Darker border */
+            --count-bg: #4a5568; /* Dark count background */
+            --read-time-color: #68d391; /* Lighter green for read time */
+            --ad-bg: #4a5568; /* Darker ad background */
+            --ad-border: #ecc94b; /* Gold ad border */
+            --ad-text: #f7fafc; /* Light ad text */
+            --footer-text: #a0aec0; /* Lighter gray footer text */
+            --input-placeholder: #a0aec0; /* Light placeholder */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            transition: background-color 0.3s ease; /* Smooth transition */
+        }
+        .page-wrapper {
+            background-color: var(--container-bg);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2.5rem;
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            color: var(--text-color); /* Apply text color variable */
+        }
+        .page-wrapper h1, .page-wrapper h2 {
+            color: var(--text-color);
+        }
+        .page-wrapper p {
+            color: var(--secondary-text-color);
+        }
+        /* Grid for main content and sidebar on large screens */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Single column by default for mobile */
+            gap: 2rem; /* Gap between columns/rows */
+            width: 100%;
+        }
+        @media (min-width: 1024px) { /* Tailwind's 'lg' breakpoint */
+            .content-grid {
+                grid-template-columns: 2fr 1fr; /* 2 parts for main, 1 part for sidebar */
+            }
+        }
+
+        textarea {
+            border-radius: 0.75rem;
+            border: 2px solid var(--border-color);
+            padding: 1rem;
+            width: 100%;
+            font-size: 1rem;
+            min-height: 200px;
+            resize: vertical;
+            color: var(--text-color);
+            background-color: var(--container-bg); /* Match container background */
+            transition: all 0.2s ease-in-out;
+        }
+        textarea::placeholder { /* Placeholder color */
+            color: var(--input-placeholder);
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+        }
+        .count-display {
+            background-color: var(--count-bg);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            font-size: 1.125rem;
+            color: var(--secondary-text-color);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .count-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 120px;
+            text-align: center;
+        }
+        .count-item span {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            margin-top: 0.25rem;
+            display: block;
+            transition: color 0.3s ease;
+        }
+        .read-time-item {
+            color: var(--secondary-text-color); /* Changed to use secondary text color */
+            font-weight: 500;
+        }
+        .read-time-item span {
+            color: var(--read-time-color);
+            transition: color 0.3s ease;
+        }
+        /* General ad placeholder styling */
+        .ad-placeholder {
+            background-color: var(--ad-bg);
+            border: 1px solid var(--ad-border);
+            color: var(--ad-text);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 2rem; /* Spacing for ads */
+            margin-bottom: 2rem; /* Spacing for ads */
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        /* Style for the ad link */
+        .ad-placeholder a {
+            color: #2563eb;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        .ad-placeholder a:hover {
+            color: #1d4ed8;
+        }
+        .action-button {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            margin: 0.5rem;
+            cursor: pointer;
+            border: none;
+            flex-grow: 1;
+            min-width: 120px;
+        }
+        .action-button:hover {
+            background-color: #4338ca;
+        }
+        .action-button:active {
+            transform: translateY(1px);
+        }
+        .utility-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        footer {
+            color: var(--footer-text);
+            transition: color 0.3s ease;
+        }
+        /* Theme toggle button specific styles */
+        .theme-toggle-button {
+            background-color: var(--count-bg); /* Use count-bg for consistency */
+            color: var(--secondary-text-color);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px; /* Pill shape */
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: absolute; /* Position it outside the main flow */
+            top: 1rem;
+            right: 1rem;
+            z-index: 10; /* Ensure it's above other elements */
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        .theme-toggle-button:hover {
+            background-color: var(--border-color); /* Slightly darker on hover */
+        }
+        html.dark-mode .theme-toggle-button {
+            background-color: var(--count-bg); /* Match dark count-bg */
+            color: var(--text-color); /* Use light text */
+            border-color: var(--border-color); /* Dark border */
+        }
+        html.dark-mode .theme-toggle-button:hover {
+            background-color: #6b7280; /* Slightly lighter on hover in dark mode */
+        }
+        /* Adjust positioning for mobile if needed, or make it part of main header */
+        @media (max-width: 767px) {
+            .theme-toggle-button {
+                position: static; /* Make it flow normally on mobile */
+                margin-bottom: 1rem;
+                display: block;
+                width: fit-content;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .page-wrapper {
+                padding-top: 5rem; /* Add padding to top if button is fixed */
+            }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="page-wrapper relative">
+        <button id="themeToggle" class="theme-toggle-button">
+            Switch to Bright
+        </button>
+
+        <h1 class="text-3xl sm:text-4xl font-extrabold mb-4">
+            Online Word and Character Counter
+        </h1>
+        <p class="text-lg mb-8">
+            Paste or type your text below to get instant word, character, and reading time counts, plus powerful text tools.
+        </p>
+
+        <!-- Main Content and Sidebar Grid -->
+        <div class="content-grid">
+            <!-- Main Content Column -->
+            <div>
+                <!-- Ad Slot 1: Top Banner/Content Ad -->
+                <div class="ad-placeholder">
+                    <p class="font-bold text-lg mb-2">Advertisement Space (Top Banner)</p>
+                    <p>Your Adsterra, AdSense, or other ad network code goes here. This spot is great for a prime view!</p>
+                    <!-- INSERT YOUR AD CODE HERE -->
+                    <a href="#" class="block mt-3">Click here for a demo affiliate product!</a>
+                    <!-- END AD CODE -->
+                </div>
+
+                <div class="mb-6 mt-6">
+                    <textarea id="textInput" placeholder="Start typing or paste your text here..." oninput="updateCounts()"></textarea>
+                </div>
+
+                <div class="count-display mb-8">
+                    <div class="count-item">Words: <span id="wordCount">0</span></div>
+                    <div class="count-item">Characters: <span id="charCount">0</span></div>
+                    <div class="count-item">No-Space Chars: <span id="charNoSpacesCount">0</span></div>
+                    <div class="count-item">Paragraphs: <span id="paragraphCount">0</span></div>
+                    <div class="count-item read-time-item">Avg. Read Time: <span id="avgReadTime">0 min</span></div>
+                    <div class="count-item read-time-item">Slow Read Time: <span id="slowReadTime">0 min</span></div>
+                    <div class="count-item read-time-item">Fast Read Time: <span id="fastReadTime">0 min</span></div>
+                    <div class="count-item">Avg. Word Length: <span id="avgWordLength">0.00</span></div>
+                </div>
+
+                <!-- Utility Buttons Section -->
+                <div class="utility-buttons">
+                    <button class="action-button bg-red-600 hover:bg-red-700" onclick="clearText()">Clear Text</button>
+                    <button class="action-button bg-green-600 hover:bg-green-700" onclick="copyText()">Copy Text</button>
+                    <button class="action-button" onclick="toUpperCase()">Uppercase</button>
+                    <button class="action-button" onclick="toLowerCase()">Lowercase</button>
+                    <button class="action-button" onclick="toTitleCase()">Title Case</button>
+                </div>
+
+                <!-- Ad Slot 2: Mid-Content Rectangle/Banner -->
+                <div class="ad-placeholder">
+                    <p class="font-bold text-lg mb-2">Advertisement Space (Mid-Content)</p>
+                    <p>Ideal for display ads that blend with content. Paste your ad script here.</p>
+                    <!-- INSERT YOUR AD CODE HERE -->
+                    <a href="#" class="block mt-3">Explore top writing resources!</a>
+                    <!-- END AD CODE -->
+                </div>
+            </div>
+
+            <!-- Right Sidebar Ad Column (stacks below main content on mobile) -->
+            <div class="lg:mt-0 mt-8 text-center">
+                <h2 class="text-xl font-bold mb-4">More Resources & Tools</h2>
+                
+                <!-- Ad Slot 3: Sidebar Ad 1 -->
+                <div class="ad-placeholder mb-4">
+                    <p class="font-bold text-lg mb-2">Advertisement Space (Sidebar 1)</p>
+                    <p>Great for smaller, vertical ads or specific affiliate product showcases.</p>
+                    <!-- INSERT YOUR AD CODE HERE -->
+                    <a href="#" class="block mt-3">Discover AI tools for content creation!</a>
+                    <!-- END AD CODE -->
+                </div>
+
+                <!-- Ad Slot 4: Sidebar Ad 2 -->
+                <div class="ad-placeholder mb-4">
+                    <p class="font-bold text-lg mb-2">Advertisement Space (Sidebar 2)</p>
+                    <p>Another spot for relevant ads or additional affiliate offers.</p>
+                    <!-- INSERT YOUR AD CODE HERE -->
+                    <a href="#" class="block mt-3">Improve your grammar with this tool!</a>
+                    <!-- END AD CODE -->
+                </div>
+
+                <!-- Ad Slot 5: Sidebar Ad 3 (New) -->
+                <div class="ad-placeholder">
+                    <p class="font-bold text-lg mb-2">Advertisement Space (Sidebar 3)</p>
+                    <p>An extra space for diverse ad units or complementary services.</p>
+                    <!-- INSERT YOUR AD CODE HERE -->
+                    <a href="#" class="block mt-3">Enhance your vocabulary!</a>
+                    <!-- END AD CODE -->
+                </div>
+
+            </div>
+        </div>
+
+        <footer class="mt-10 text-sm w-full">
+            &copy; <span id="currentYear"></span> Online Word and Character Counter. All rights reserved.
+        </footer>
+    </div>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const textInput = document.getElementById('textInput');
+        const wordCountSpan = document.getElementById('wordCount');
+        const charCountSpan = document.getElementById('charCount');
+        const charNoSpacesCountSpan = document.getElementById('charNoSpacesCount');
+        const paragraphCountSpan = document.getElementById('paragraphCount');
+        const avgReadTimeSpan = document.getElementById('avgReadTime');
+        const slowReadTimeSpan = document.getElementById('slowReadTime');
+        const fastReadTimeSpan = document.getElementById('fastReadTime'); // Corrected typo here
+        const avgWordLengthSpan = document.getElementById('avgWordLength');
+
+        // Helper function to format time (minutes and seconds)
+        function formatTime(totalWords, wpm) {
+            if (totalWords === 0) {
+                return '0 min';
+            }
+            const totalMinutes = totalWords / wpm;
+            const minutes = Math.floor(totalMinutes);
+            let seconds = Math.round((totalMinutes - minutes) * 60);
+
+            if (seconds === 60) {
+                minutes++;
+                seconds = 0;
+            }
+
+            let timeString = '';
+            if (minutes > 0) {
+                timeString += `${minutes} min`;
+            }
+            if (seconds > 0 || minutes === 0) {
+                timeString += ` ${seconds} sec`;
+            }
+            return timeString.trim();
+        }
+
+        // Function to update all counts and stats
+        function updateCounts() {
+            const text = textInput.value;
+            const words = text.match(/\b\S+\b/g);
+            const wordCount = words ? words.length : 0;
+            wordCountSpan.textContent = wordCount;
+
+            const charCount = text.length;
+            charCountSpan.textContent = charCount;
+
+            const charNoSpacesCount = text.replace(/\s/g, '').length;
+            charNoSpacesCountSpan.textContent = charNoSpacesCount;
+
+            const paragraphs = text.split(/\r?\n\s*\r?\n/);
+            const filteredParagraphs = paragraphs.filter(p => p.trim() !== '');
+            const paragraphCount = filteredParagraphs.length;
+            
+            if (text.trim() !== '' && paragraphCount === 0) {
+                paragraphCountSpan.textContent = '1';
+            } else {
+                paragraphCountSpan.textContent = paragraphCount;
+            }
+
+            const averageWPM = 200;
+            const slowWPM = 150;
+            const fastWPM = 280;
+
+            avgReadTimeSpan.textContent = formatTime(wordCount, averageWPM);
+            slowReadTimeSpan.textContent = formatTime(wordCount, slowWPM);
+            fastReadTimeSpan.textContent = formatTime(wordCount, fastWPM);
+            
+            if (wordCount > 0) {
+                avgWordLengthSpan.textContent = (charNoSpacesCount / wordCount).toFixed(2);
+            } else {
+                avgWordLengthSpan.textContent = '0.00'; // Display 0.00 for consistency
+            }
+
+            if (text.trim() === '') {
+                wordCountSpan.textContent = '0';
+                charCountSpan.textContent = '0';
+                charNoSpacesCountSpan.textContent = '0';
+                paragraphCountSpan.textContent = '0';
+                avgReadTimeSpan.textContent = '0 min';
+                slowReadTimeSpan.textContent = '0 min';
+                fastReadTimeSpan.textContent = '0 min';
+                avgWordLengthSpan.textContent = '0.00';
+            }
+        }
+
+        // --- Text Transformation Functions ---
+        function clearText() {
+            textInput.value = '';
+            updateCounts();
+        }
+
+        function copyText() {
+            textInput.select();
+            textInput.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        }
+
+        function toUpperCase() {
+            textInput.value = textInput.value.toUpperCase();
+            updateCounts();
+        }
+
+        function toLowerCase() {
+            textInput.value = textInput.value.toLowerCase();
+            updateCounts();
+        }
+
+        function toTitleCase() {
+            const text = textInput.value;
+            const titleCasedText = text.replace(/\b([a-z])/g, char => char.toUpperCase());
+            textInput.value = titleCasedText;
+            updateCounts();
+        }
+
+        // --- Theme Toggle Logic ---
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        // Function to set the theme
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.classList.add('dark-mode');
+                themeToggleBtn.textContent = 'Switch to Bright';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                htmlElement.classList.remove('dark-mode');
+                themeToggleBtn.textContent = 'Switch to Dark';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load theme from localStorage or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark'; // Default to 'dark'
+        setTheme(savedTheme);
+
+        // Toggle theme on button click
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.classList.contains('dark-mode') ? 'dark' : 'light';
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+
+        // Initialize counts on page load
+        window.onload = updateCounts;
+    </script>
+</body>
+</html>
